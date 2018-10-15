@@ -2,18 +2,21 @@
 """
 Created on Sun Oct 14 12:36:33 2018
 
-@author: 11940
+@author: EugeneChou
 """
 
 import requests
-#import os
 from bs4 import BeautifulSoup
-#from docx import Document
 import time
 import random
 import pymssql
 import csv
+"""
+csv模块用来读写csv文件
+pymssql模块用来连接Sql Server数据库
+两者都可以用pip来安装
 
+"""
 
 def Get_html(Url):
     headers = {
@@ -25,8 +28,11 @@ def Get_html(Url):
         print("状态正常")
         return req.text
     else:
+        #如果抓取太快，网站可能ban掉你的ip，此时返回空值：
         print("状态异常")
         return None
+    
+    
 def Parse(html):
     soup=BeautifulSoup(html,'lxml')
     all_list=[]
@@ -35,6 +41,7 @@ def Parse(html):
     company_list=[]
     job_list=[]
     worday_list=[]
+    #selector需要用Chrome浏览器里的“检查”功能找到并复制为selector
     money=soup.select('span.job-info-money')
     company=soup.select('div.job-info-company')
     job=soup.select('span.job-info-name')
@@ -54,10 +61,13 @@ def Parse(html):
         big_list.append(company_list[i])
         big_list.append(worday_list[i])
         big_list.append(money_list[i])
+        #Sql Server需要用元组的格式才能正确传输数据：
         all_list.extend([tuple(big_list)])
     if all_list:
         print("处理成功！")
         return all_list
+    
+    
 def main():
     URL="http://www.internbird.com/j/search?lt=&k=&jt=&pt=&cid=1&wk=&et=&page="
     #all_info=[]
@@ -77,26 +87,40 @@ def main():
         cw = csv.writer(f)
         cw.writerow(head)
         cw.writerows(all_get)
+"""
+localhost为本地数据库
+user为登录用户名，Sql Server需开启登录验证模式
+password为密码
+database为待使用的数据库名
+"""
     server = 'localhost'
-    user = 'sa'
-    password = '130567'
-    database = 'SudentDB'
+    user = 'username'
+    password = 'password'
+    database = 'database'
     conn = pymssql.connect(server,user,password,database)
     cur = conn.cursor()
     temp = 0
-    for i in all_get:
-        #print("此时temp:%d   写入第%d行数据"%(temp,temp+1))
-        sql = "insert into Intern(job,company,workday,money) values ('%s','%s','%s','%s')"%(all_get[temp])
-        cur.execute(sql)
-        temp = temp+1
+    try:
+        for i in all_get:
+            #print("此时temp:%d   写入第%d行数据"%(temp,temp+1))
+            #Intern(...)的Intern为待存取的表名
+            sql = "insert into Intern(job,company,workday,money) values ('%s','%s','%s','%s')"%(all_get[temp])
+            cur.execute(sql)
+            temp = temp+1
+        except:
+            print("出错啦--->"+str(reason))
     cur.execute("select job from Intern")
     job_num = cur.fetchall()
     if len(job_num)==temp:
         print("恭喜，所有数据处理并入库完毕!")
+    #最后需要提交事务，否则所有数据无法存取：
     conn.commit()
+    #记得关闭连接：
     conn.close()
     end=time.time()
     print("耗时%.3f"%(end-begain))
+    
+    
 if __name__=='__main__':
     main()
         
