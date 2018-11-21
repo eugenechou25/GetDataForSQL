@@ -18,13 +18,13 @@ pymssql模块用来连接Sql Server数据库
 
 """
 
-def Get_html(Url):
+def get_html(Url):
     headers = {
             'USer-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'
             }
     req = requests.get(Url,headers = headers )
     print("状态码：%d"%(req.status_code))
-    if req.status_code==200:
+    if req.status_code == 200:
         print("状态正常")
         return req.text
     else:
@@ -33,25 +33,25 @@ def Get_html(Url):
         return None
     
     
-def Parse(html):
-    soup=BeautifulSoup(html,'lxml')
-    all_list=[]
-    count=0
-    money_list=[]
-    company_list=[]
-    job_list=[]
-    worday_list=[]
+def parse(html):
+    soup = BeautifulSoup(html,'lxml')
+    all_list = []
+    count = 0
+    money_list = []
+    company_list = []
+    job_list = []
+    worday_list = []
     #selector需要用Chrome浏览器里的“检查”功能找到并复制为selector
-    money=soup.select('span.job-info-money')
-    company=soup.select('div.job-info-company')
-    job=soup.select('span.job-info-name')
-    worday=soup.select('span.job-info-days')
+    money = soup.select('span.job-info-money')
+    company = soup.select('div.job-info-company')
+    job = soup.select('span.job-info-name')
+    worday = soup.select('span.job-info-days')
     for m in money:
         money_list.append(m.get_text())
     for c in company:
         company_list.append(c.get_text())
     for j in job:
-        count=count+1
+        count = count+1
         job_list.append(j.get_text())
     for w in worday:
         worday_list.append(w.get_text())
@@ -69,9 +69,9 @@ def Parse(html):
     
     
 def main():
-    URL="http://www.internbird.com/j/search?lt=&k=&jt=&pt=&cid=1&wk=&et=&page="
+    URL = "http://www.internbird.com/j/search?lt=&k=&jt=&pt=&cid=1&wk=&et=&page="
     #all_info=[]
-    all_get =[]
+    all_get = []
     begain = time.time()
     for i in range(1,125):
         all_info = []
@@ -121,7 +121,7 @@ database为待使用的数据库名
     print("耗时%.3f"%(end-begain))
     
     
-if __name__=='__main__':
+if __name__ == '__main__':
     main()
         
         
